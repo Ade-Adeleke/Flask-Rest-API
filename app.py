@@ -1,18 +1,8 @@
+import uuid
 from flask import Flask, jsonify, request,render_template
+from db import items,stores
 
 app = Flask(__name__)
-
-stores = [
-    {
-        'name':'King Store',
-        'items':[
-            {
-                'name':'boot',
-                'price': 100.0
-            }
-        ]
-    }
-]
 
 
 
@@ -21,49 +11,45 @@ def home():
     return render_template('index.html')
 
 
-@app.route('/store', methods = ['POST'])
+@app.post('/store')
 def create_store():
-    request_data = request.get_json()
-    new_store = [
-        {
-            'name': request_data['name'],
-            'items': []
-        }
+    store_data = request.get_json()
+    store_id = uuid.uuid4().hex
 
-    ]
-    stores.append(new_store)
-    return jsonify(new_store)
+    store = {** store_data, "id": store_id}
+    stores[store_id]= store
+    return store, 201
 
-@app.route('/store/<string:name>')
-def get_store(name):
-    for store in stores:
-        if store['name'] == name:
-            return jsonify(store)
-    return jsonify({'message':'store not found'})
-    pass
+@app.get('/store/<string:store_id>')
+def get_store(store_id):
+    try:
+        return stores[store_id]
+    except KeyError:
+        return {'message': 'store not found'}
 
-@app.route('/store')
+@app.get('/store')
 def get_stores():
-    return jsonify({'stores':stores})
+    return {'stores':list(stores.values())}
 
-@app.route('/store/<string:name>/item', methods=['POST'])
-def create_item_in_store(name):
-    request_data = request.get_json()
-    for store in stores:
-        if store['name']== name:
-            new_item = {
-                'name': 'gloves',
-                'price': 50.0
-            }
-            store['items'].append(new_item)
-            return jsonify(new_item)
-    return jsonify({'message':'store not found'})
+@app.post('/item')
+def create_item(name):
+    item_data = request.get_json()
+    if item_data["store_id"] not in stores:
+        return {"Store not found"}, 404
+    item_id = uuid.uuid4().hex
 
-@app.route('/store/<string:name>/item')
-def get_items_in_store(name):
-    for store in stores:
-        if store['name'] == name:
-            return jsonify({'items': store['items']})
-    return jsonify({'message': 'store not found'})
+    item = {**item_data, "id": item_id}
+    items[item_id] = item
+    return item, 201
 
-app.run(debug=True)
+@app.get('/item')
+def get_all_item():
+    return {'items':list(items.values())}
+@app.get('/item/<string:item_id>')
+def get_item(item_id):
+    try:
+        return items[item_id]
+    except KeyError:
+        return {'message': 'item not found'}, 404
+
+#app.run(debug=True)
