@@ -8,6 +8,7 @@ blp = Blueprint("stores", __name__, description="Operations on store")
 
 @blp.route("/store/<string:store_id>")
 class Store(MethodView):
+    @blp.response(200, StoreSchema)
     def get(self, store_id):
         try:
             return stores[store_id]
@@ -21,24 +22,16 @@ class Store(MethodView):
         except KeyError:
             abort(400, message="Bad Request, Store not found")
 
-    def put(self,store_id):
-        store_data = request.get_json()
-        if "name" not in store_data:
-            abort(400, message="Bad Request, Ensure 'name' is included")
-        try:
-            store = stores[store_id]
-            store |= store_data
-            return store
-        except KeyError:
-            abort(400, message="Bad Request, Store not found")
+
 
 
 @blp.route("/store")
 class StoreList(MethodView):
     def get(self):
-        return {'stores': list(stores.values())}
+        return stores.values()
 
     @blp.arguments(StoreSchema)
+    @blp.response(200, StoreSchema )
     def post(self, store_data):
         for store in stores.values():
             if store_data["name"] == store["name"]:
