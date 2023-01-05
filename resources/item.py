@@ -12,28 +12,18 @@ blp = Blueprint("items", __name__, description="Operations on Items")
 class Item(MethodView):
     @blp.response(200, ItemSchema)
     def get(self, item_id):
-        try:
-            return items[item_id]
-        except KeyError:
-            abort(404, message='store not found')
+        item = ItemModel.query.get_or_404(item_id)
+        return item
 
     def delete(self, item_id):
-        try:
-            del items[item_id]
-            return {"message": "Item deleted"}
-        except KeyError:
-            abort(404, message='item not found')
+        item = ItemModel.query.get_or_404(item_id)
+        raise NotImplementedError("Delete Not Implemented")
 
     @blp.arguments(ItemUpdateSchema)
     @blp.response(201, ItemSchema)
     def put(self, item_data ,item_id):
-
-        try:
-            item = items[item_id]
-            item |= item_data
-            return item
-        except KeyError:
-            abort(400, message="item not found")
+        item = ItemModel.query.get_or_404(item_id)
+        return NotImplementedError("Update not implemented  ")
 
 
 @blp.route("/item")
