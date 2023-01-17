@@ -24,11 +24,13 @@ class Store(MethodView):
 
 @blp.route("/store")
 class StoreList(MethodView):
+
+    @blp.response(200, StoreSchema(many=True))
     def get(self):
-        return stores.values()
+        return StoreModel.query.all()
 
     @blp.arguments(StoreSchema)
-    @blp.response(200, StoreSchema )
+    @blp.response(200, StoreSchema)
     def post(self, store_data):
         store = StoreModel(**store_data)
         try:
