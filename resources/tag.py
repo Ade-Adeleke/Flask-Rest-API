@@ -1,7 +1,7 @@
 from flask_smorest import Blueprint, abort
 from flask.views import MethodView
-from schemas import TagSchema
-from models import TagModel,ItemModel, StoreModel
+from schemas import TagSchema, TagAndItemSchema
+from models import TagModel,ItemTagsModel, StoreModel, ItemModel
 from sqlalchemy.exc import SQLAlchemyError
 from db import db
 
@@ -34,3 +34,38 @@ class Tag(MethodView):
     def get(self, tag_id):
         tag = TagModel.query.get_or_404(tag_id)
         return tag
+
+    def delete(self, tag_id):
+        tag = ItemModel.query.get_or_404(tag_id)
+        db.session.delete(tag)
+        db.session.commit()
+        return {"message": "Tag deleted"}
+
+blp.route("/item/<string:store_id>/<string:tag_id>")
+class LinkTagsToItem(MethodView):
+    @blp.response(201, TagSchema)
+    def post(self, tag_id, item_id):
+        item = ItemModel.query.get_or_404(item_id)
+        tag = TagModel.query.get_or_404(tag_id)
+        item.tag.append(tag)
+        try:
+            db.session.add(tag)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(500, message=str(e))
+
+        return tag
+
+    @blp.response(200, TagSchema)
+    def delete(self, tag_id, item_id):
+        item = ItemModel.query.get_or_404(item_id)
+        tag = TagModel.query.get_or_404(tag_id)
+        item.tag.remove(tag)
+        try:
+            db.session.add(tag)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(500, message=str(e))
+
+        return {"message": "item unlinked from tag"}
+
