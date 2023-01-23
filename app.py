@@ -1,4 +1,5 @@
 import os
+import secrets
 from flask import Flask, jsonify, request,render_template
 from flask_smorest import Api
 from resources.store import blp as StoreBlueprint
@@ -6,6 +7,7 @@ from resources.item import blp as ItemBlueprint
 from resources.tag import blp as TagBlueprint
 from db import db
 import models
+from flask_jwt_extended import JWTManager
 
 
 def create_app(db_url = None):
@@ -23,6 +25,10 @@ def create_app(db_url = None):
     db.init_app(app)
 
     api = Api(app)
+
+    app.config("JWT_SECRET_KEY") = "91398425959890473578476272483330548806"
+    jwt = JWTManager(app)
+
     @app.before_first_request
     def create_tables():
         db.create_all()
