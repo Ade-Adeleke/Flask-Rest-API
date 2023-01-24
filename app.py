@@ -1,13 +1,11 @@
 import os
-import secrets
-from flask import Flask, jsonify, request,render_template
+from flask import Flask, jsonify
 from flask_smorest import Api
 from resources.store import blp as StoreBlueprint
 from resources.item import blp as ItemBlueprint
 from resources.tag import blp as TagBlueprint
 from resources.user import blp as UserBlueprint
 from db import db
-import models
 from flask_jwt_extended import JWTManager
 from blocklist import BLOCKLIST
 
@@ -44,7 +42,17 @@ def create_app(db_url = None):
             ),
             401,
         )
-
+    @jwt.needs_fresh_token_loader
+    def token_not_fresh_callback(jwt_header, jwt_payload):
+        return (
+            jsonify(
+                {
+                    "description": "The token is not fresh",
+                    "error": "fresh_token_required"
+                }
+            ),
+            401,
+        )
     @jwt.additional_claims_loader
     def add_claims_to_jwt(identity):
         if identity==1:
