@@ -1,6 +1,7 @@
 import os
 from flask import Flask, jsonify
 from flask_smorest import Api
+from flask_migrate import Migrate
 from resources.store import blp as StoreBlueprint
 from resources.item import blp as ItemBlueprint
 from resources.tag import blp as TagBlueprint
@@ -23,7 +24,7 @@ def create_app(db_url = None):
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url or os.getenv("DATABASE_URL", "sqlite:///data.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
-
+    migrate = Migrate(app, db)
     api = Api(app)
 
     app.config["JWT_SECRET_KEY"] = "91398425959890473578476272483330548806"
